@@ -4,6 +4,7 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from scipy import stats as scipy_stats
+from pathlib import Path
 
 # ── 페이지 설정 ──────────────────────────────────────────────
 st.set_page_config(
@@ -324,14 +325,27 @@ def build_summary(_df_p, _df_d):
         )
     return df_stats.reset_index()
 
+# ── 기본 데이터 파일 설정 ─────────────────────────────────────
+# GitHub 저장소에 app.py와 같은 위치로 Welding_Data_Set_01.xlsx를 같이 올리면
+# 사용자가 파일을 업로드하지 않아도 대시보드가 자동으로 실행됩니다.
+BASE_DIR = Path(__file__).resolve().parent
+DEFAULT_DATA_FILE = BASE_DIR / "Welding_Data_Set_01.xlsx"
+
 # ── 사이드바 ──────────────────────────────────────────────────
 with st.sidebar:
     st.title("⚙️ 용접기 EDA")
     st.caption("KAIST · KAMP 데이터셋")
     st.divider()
+
     uploaded = st.file_uploader(
-        "Welding_Data_Set_01.xlsx 업로드", type=["xlsx"]
+        "다른 엑셀 파일로 분석하기", type=["xlsx"]
     )
+
+    if uploaded is None:
+        st.caption("기본 데이터: Welding_Data_Set_01.xlsx 자동 로드")
+    else:
+        st.caption("업로드한 파일 기준으로 분석 중")
+
     st.divider()
     page = st.radio(
         "페이지",
@@ -339,11 +353,16 @@ with st.sidebar:
          "🔍 교번 패턴 분석", "📋 날짜별 불량 분석", "📌 핵심 날짜 비교"]
     )
 
-if uploaded is None:
-    st.info("👈 왼쪽 사이드바에서 엑셀 파일을 업로드해주세요.")
-    st.stop()
+# 업로드 파일이 있으면 업로드 파일 사용, 없으면 GitHub에 같이 올린 기본 엑셀 사용
+if uploaded is not None:
+    data_source = uploaded
+else:
+    data_source = DEFAULT_DATA_FILE
+    if not DEFAULT_DATA_FILE.exists():
+        st.error("기본 데이터 파일 `Welding_Data_Set_01.xlsx`를 찾을 수 없습니다. app.py와 같은 폴더에 엑셀 파일을 넣어주세요.")
+        st.stop()
 
-df, df_defect = load_data(uploaded)
+df, df_defect = load_data(data_source)
 summary = build_summary(df, df_defect)
 
 # ══════════════════════════════════════════════════════════════
