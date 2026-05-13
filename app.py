@@ -576,12 +576,15 @@ elif page == "📉 관리도 (SPC)":
     xbars["date_str"] = xbars["date"].astype(str)
     xbars["out"] = (xbars["xbar"] > ucl3) | (xbars["xbar"] < lcl3)
 
+    # 분포 분석 페이지와 동일한 지표명으로 표시
+    out3 = int(((s > ucl3) | (s < lcl3)).sum())
+
     m1, m2, m3, m4 = st.columns(4)
     for col_st, lbl, val in [
-        (m1, "X̿ (중심선)",  f"{mu:.4f} {meta['unit']}"),
-        (m2, "σ",            f"{sigma:.4f}"),
-        (m3, "UCL (+3σ)",    f"{ucl3:.4f}"),
-        (m4, "관리이탈 일수", f"{int(xbars['out'].sum())}일"),
+        (m1, "평균 (X̄)",      f"{mu:.4f} {meta['unit']}"),
+        (m2, "표준편차 (σ)",   f"{sigma:.4f}"),
+        (m3, "UCL (+3σ)",      f"{ucl3:.4f}"),
+        (m4, "3σ 이탈",        f"{out3}개"),
     ]:
         col_st.markdown(f"""
         <div class="metric-box">
