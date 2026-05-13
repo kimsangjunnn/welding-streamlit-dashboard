@@ -663,7 +663,12 @@ elif page == "🔍 교번 패턴 분석":
         outlier_pct.append(round((group > ucl).sum() / len(group) * 100, 1))
 
     ac1 = pd.Series(vals).autocorr(lag=1)
-    t_stat, p_val = scipy_stats.ttest_ind(low_days, high_days)
+    t_res = scipy_stats.ttest_ind(low_days, high_days, equal_var=True)
+    t_stat = float(t_res.statistic)
+    p_val = float(t_res.pvalue)
+    df_t = int(t_res.df)
+    alpha = 0.05
+    t_crit = scipy_stats.t.ppf(alpha, df_t)  # 단측검정 기준: low_days < high_days
     diffs = np.diff(vals)
     signs = [1 if d > 0 else -1 for d in diffs]
     full_alt = all(signs[i] != signs[i+1] for i in range(len(signs)-1))
@@ -675,9 +680,9 @@ elif page == "🔍 교번 패턴 분석":
         <p class="metric-sub" style="color:#c92a2a">-0.5 이하 → 강한 교번 패턴</p>
     </div>""", unsafe_allow_html=True)
     m2.markdown(f"""<div class="metric-box">
-        <p class="metric-label">t-검정 p-value</p>
-        <p class="metric-value" style="color:#c92a2a">{p_val:.4f}</p>
-        <p class="metric-sub" style="color:#c92a2a">p &lt; 0.05 → 통계적으로 유의미</p>
+        <p class="metric-label">t-검정</p>
+        <p class="metric-value" style="color:#c92a2a">{t_stat:.3f}</p>
+        <p class="metric-sub" style="color:#c92a2a">α = {alpha:.2f} 로 분석 결과 t &lt; {t_crit:.3f}</p>
     </div>""", unsafe_allow_html=True)
     m3.markdown(f"""<div class="metric-box">
         <p class="metric-label">완전 교번 패턴</p>
@@ -690,7 +695,7 @@ elif page == "🔍 교번 패턴 분석":
     fig = make_subplots(
         rows=2, cols=1,
         subplot_titles=("날짜별 X-bar (낮은 날 vs 높은 날)", "날짜별 이상치 비율"),
-        vertical_spacing=0.24
+        vertical_spacing=0.30
     )
     fig.add_trace(go.Bar(
         x=[d for d, h in zip(dates_str, is_high) if not h],
@@ -722,8 +727,8 @@ elif page == "🔍 교번 패턴 분석":
         showlegend=False, marker_line_width=0,
     ), row=2, col=1)
     fig.update_layout(
-        height=650,
-        margin=dict(t=40, b=10, l=0, r=0),
+        height=820,
+        margin=dict(t=50, b=30, l=0, r=0),
         plot_bgcolor="rgba(8, 17, 31, 0.92)",
         paper_bgcolor="rgba(0, 0, 0, 0)",
         legend=dict(orientation="h", y=1.04, font=dict(size=11)),
@@ -758,7 +763,7 @@ elif page == "🔍 교번 패턴 분석":
 **특수원인(Special Cause) 존재 — 3가지 통계로 증명**
 
 1. **자기상관계수 {ac1:.3f}** — lag-1 자기상관이 -0.5 이하면 강한 교번 패턴.
-2. **t-검정 p = {p_val:.4f}** — 정상일 평균({low_days.mean():.2f} bar)과 이상일 평균({high_days.mean():.2f} bar) 차이가 통계적으로 유의미 (p < 0.05).
+2. **t-검정** — 유의수준 α = {alpha:.2f}, 자유도 df = {df_t} 에 대해 t = {t_stat:.4f}로 t < {t_crit:.3f}를 만족하므로 H₀ 기각. 정상일 평균({low_days.mean():.2f} bar)과 이상일 평균({high_days.mean():.2f} bar)의 차이는 통계적으로 유의미하다.
 3. **이상치 완전 분리** — 정상일 5일 이상치 0%, 이상일 4일 이상치 8~20%.
     """)
 
