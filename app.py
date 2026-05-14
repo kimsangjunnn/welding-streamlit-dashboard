@@ -682,7 +682,7 @@ elif page == "🔍 교번 패턴 분석":
     m2.markdown(f"""<div class="metric-box">
         <p class="metric-label">t-검정</p>
         <p class="metric-value" style="color:#c92a2a">{t_stat:.3f}</p>
-        <p class="metric-sub" style="color:#c92a2a">α = {alpha:.2f} 로 분석 결과 t &lt; {t_crit:.3f}</p>
+        <p class="metric-sub" style="color:#c92a2a">α = 0.05 로 분석 결과 t &lt; -2.365</p>
     </div>""", unsafe_allow_html=True)
     m3.markdown(f"""<div class="metric-box">
         <p class="metric-label">완전 교번 패턴</p>
@@ -763,7 +763,7 @@ elif page == "🔍 교번 패턴 분석":
 **특수원인(Special Cause) 존재 — 3가지 통계로 증명**
 
 1. **자기상관계수 {ac1:.3f}** — lag-1 자기상관이 -0.5 이하면 강한 교번 패턴.
-2. **t-검정** — 유의수준 α = {alpha:.2f}, 자유도 df = {df_t} 에 대해 t = {t_stat:.4f}로 t < {t_crit:.3f}를 만족하므로 H₀ 기각. 정상일 평균({low_days.mean():.2f} bar)과 이상일 평균({high_days.mean():.2f} bar)의 차이는 통계적으로 유의미하다.
+2. **t-검정** — 유의수준 α = 0.05, 자유도 df = 7에 대해 t = {t_stat:.4f}로 t < -2.365를 만족하므로 H₀ 기각. 정상일 평균({low_days.mean():.2f} bar)과 이상일 평균({high_days.mean():.2f} bar)의 차이는 통계적으로 유의미하다.
 3. **이상치 완전 분리** — 정상일 5일 이상치 0%, 이상일 4일 이상치 8~20%.
     """)
 
